@@ -91,8 +91,14 @@ class ConvertPTSMainWindow(qtw.QMainWindow):
         urls = event.mimeData().urls()
 
         path = urls[0].path()
+        path = os.path.realpath(path)
         print 'dragged path: {}'.format(path)
-
+        
+        # Replace wrong leading slash on windows shares
+        if sys.platform == 'win32':
+            if path[0] == '/':
+                path = path[1:]
+                
         if not path.endswith('.pts') and not urls[0].path().endswith('.ptx'):
             return
 
