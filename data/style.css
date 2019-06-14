@@ -1,0 +1,24 @@
+QPushButton#convert {
+    color: white;
+    margin-top: 16px;
+    padding-left: 2em;
+    padding-right: 2em;
+    padding-top: 0.5em;
+    padding-bottom: 0.5em;
+    background-color: rgb(38, 187, 58);
+    border-radius: 6px;
+    border-width: 0;
+    max-width: 64px;
+}
+
+QPushButton#convert:hover {
+    background-color: rgb(119, 221, 132);
+}
+
+QPushButton#convert:pressed {
+    background-color: rgb(17, 141, 33);
+}
+
+QLabel#drag-hint {
+    font-style: italic;
+}
