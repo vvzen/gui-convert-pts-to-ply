@@ -1,6 +1,7 @@
 #-*- coding: utf-8 -*-
 import os
 import re
+import sys
 
 COORDS_ROW_REGEX = re.compile(
     r'(-)?(\d+\.\d+ \d+\.\d+ \d+\.\d+) (\d+ \d+ \d+ \d+)')
@@ -64,7 +65,7 @@ class ConvertPtxThread(qtc.QRunnable):
                 if i == 0:
                     total_lines = str(line)
 
-                    print 'total lines: {}'.format(total_lines)
+                    print 'total lines: {}\n'.format(total_lines)
 
                     header = PLY_HEADER.replace('/total_vertices/', total_lines)
                     header = header.replace('/asset_name/', self.asset_name)
@@ -86,35 +87,19 @@ class ConvertPtxThread(qtc.QRunnable):
                 else:
 
                     if i % PROGRESS_STEP == 0:
-                        print '{} / {}'.format(i, total_lines)
+                        sys.stdout.write('\r{} / {}'.format(i, total_lines))
 
                     xyz_values = ' '.join(line.split(' ')[:3])
                     rgb_values = ' '.join(line.split(' ')[4:])
 
-                    new_ply_line = '{xyz} {rgb}'.format(xyz=xyz_values,
-                                                        rgb=rgb_values)
+                    new_ply_line = '{xyz} {rgb}'.format(
+                        xyz=xyz_values, rgb=rgb_values)
 
-                    lines_in_buffer.append(new_ply_line)
-
-                    # In order to reduce IO, only write to file every once in a while
-                    if len(lines_in_buffer) > PROGRESS_STEP:
-                        output_file.write(''.join(lines_in_buffer))
-                        lines_in_buffer = []
-
-                    # Write the final lines
-                    elif i == total_lines_num - 1:
-
-                        print 'there are {} lines in the buffer'.format(
-                            len(lines_in_buffer))
-
-                        output_file.write(''.join(lines_in_buffer))
-                        lines_in_buffer = []
-
-                        print 'written last lines!'
+                    output_file.write(new_ply_line)
 
                 i += 1
 
-            print 'written {} lines!'.format(i)
+            print 'written {} lines!\n'.format(i)
             output_file.close()
 
         self.signals.completed.emit()

@@ -52,7 +52,8 @@ class ConvertPTSMainWindow(qtw.QMainWindow):
         self.le_asset_name.textChanged.connect(self.on_asset_name_edited)
         self.le_input_path.setReadOnly(True)
 
-        self.label_out_path = qtw.QLabel('Export dir')
+        self.label_out_path = qtw.QLabel(
+            'Export dir (will be created if does not exist)')
         self.le_output_path = qtw.QLineEdit()
 
         self.convert_layout = qtw.QHBoxLayout()
@@ -93,12 +94,12 @@ class ConvertPTSMainWindow(qtw.QMainWindow):
         path = urls[0].path()
         path = os.path.realpath(path)
         print 'dragged path: {}'.format(path)
-        
+
         # Replace wrong leading slash on windows shares
         if sys.platform == 'win32':
             if path[0] == '/':
                 path = path[1:]
-                
+
         if not path.endswith('.pts') and not urls[0].path().endswith('.ptx'):
             return
 
@@ -199,7 +200,7 @@ class ConvertPTSMainWindow(qtw.QMainWindow):
         box = qtw.QMessageBox(self)
         box.setIcon(qtw.QMessageBox.Information)
         box.setText('Conversion completed!')
-        box.setInformativeText('Conversion completed!')
+        box.setInformativeText('Everything went smooth. Nice. :)')
 
         box.setWindowTitle('All good')
         box.exec_()
