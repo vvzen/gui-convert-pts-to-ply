@@ -37,6 +37,36 @@ Under macOS and Linux, open a terminal and type `sh build.sh` file.
 
 On Windows, use git bash to run `sh build.sh`.
 
+### Example steps to create a conda env and build the app
+Once you have conda, you'll see that your prompt will change to have the current conda environment name at the beginning.
+For example: `(base)`
+
+```
+(base) $ git clone https://github.com/vvzen/gui-convert-pts-to-ply.git
+(base) $ cd gui-convert-pts-to-ply.git
+```
+Create a new conda environment (use the name that you want)
+```
+(base) $ conda create -n my-new-env
+```
+Activate the environment so that running conda install and pip install will
+only install the dependencies in the current environment
+```
+(base) $ conda activate my-new-env
+```
+Install the dependencies
+```
+(my-new-env) $ conda install pyside2
+(my-new-env) $ pip install pyinstaller
+```
+Build the app
+```
+(my-new-env) $ sh build.sh
+Run the app
+```
+(my-new-env) $ python main.py
+```
+
 ## Screenshot (macOS)
 
 ![screenshot.png](screenshot.png)
