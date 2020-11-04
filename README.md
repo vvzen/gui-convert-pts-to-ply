@@ -61,6 +61,7 @@ Install the dependencies
 Build the app
 ```
 (my-new-env) $ sh build.sh
+```
 Run the app
 ```
 (my-new-env) $ python main.py
