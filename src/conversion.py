@@ -17,7 +17,7 @@ from constants import (
 
 PROGRESS_STEP = 1000
 
-def pts_to_ply(in_path, out_path, comment, signals):
+def pts_to_ply(in_path, out_path, comment=None, signals=None):
 
     i = 0
 
@@ -29,7 +29,8 @@ def pts_to_ply(in_path, out_path, comment, signals):
         for line in f:
 
             if i % PROGRESS_STEP == 0:
-                signals.progress.emit(i)
+                if signals:
+                    signals.progress.emit(i)
 
             # First line contains number of points
             if i == 0:
@@ -51,12 +52,14 @@ def pts_to_ply(in_path, out_path, comment, signals):
                     total_lines_num = int(total_lines.strip().replace(
                         '\n', ''))
 
-                    signals.started.emit(total_lines_num)
+                    if signals:
+                        signals.started.emit(total_lines_num)
 
                 except ValueError:
-                    signals.failed.emit(
-                        'Header of file does not contain total vertices number'
-                    )
+                    if signals:
+                        signals.failed.emit(
+                            'Header of file does not contain total vertices number'
+                        )
                     return
             else:
 
@@ -76,13 +79,14 @@ def pts_to_ply(in_path, out_path, comment, signals):
         sys.stdout.write('written {} lines!\n'.format(i))
         output_file.close()
 
-def ply_to_pts(source_file, target_file, signals):
+def ply_to_pts(in_path, out_path, signals=None):
 
     sys.stdout.write("Starting..")
 
     should_parse_header = True
     reached_end_of_header = False
     found_num_vertices = False
+    detected_ply_props = []
     total_vertices = None
     vertices_lines_written = 0
 
@@ -110,12 +114,12 @@ def ply_to_pts(source_file, target_file, signals):
         "x", "y", "z", "intensity", "red", "green", "blue"
     ]
 
-    source_buffer = open(source_file, "r")
+    source_buffer = open(in_path, "r")
 
-    if not os.path.exists(os.path.dirname(target_file)):
-        os.makedirs(os.path.dirname(target_file))
+    if not os.path.exists(os.path.dirname(out_path)):
+        os.makedirs(os.path.dirname(out_path))
 
-    target_buffer = open(target_file, "w")
+    target_buffer = open(out_path, "w")
 
     property_index = -1
 
@@ -136,20 +140,27 @@ def ply_to_pts(source_file, target_file, signals):
             reached_end_of_header = "end_header" in line
             if reached_end_of_header:
                 print("Reached end of header, parsing file content..")
+
+                detected_ply_props = sorted([
+                    k for k,v in ply_properties_map.items()
+                    if v
+                ])
+
                 # print("pts_properties_source_order: %s", pts_properties_source_order)
                 should_parse_header = False
                 continue
 
             # Parse the header -------------------------------------------------
             if should_parse_header:
-                total_vertices = REGEX_NUM_VERTICES.match(line)
-                if total_vertices:
-                    total_vertices = total_vertices.group("num")
+                if REGEX_NUM_VERTICES.findall(line):
+                    total_vertices = REGEX_NUM_VERTICES.match(line).group("num")
                     print("Found vertices num: %s", total_vertices)
                     found_num_vertices = True
                     target_buffer.write(total_vertices)
                     target_buffer.write("\n")
-                    signals.started.emit(total_vertices)
+
+                    if signals:
+                        signals.started.emit(total_vertices)
                     continue
 
                 # We don't care for List properties
@@ -191,15 +202,15 @@ def ply_to_pts(source_file, target_file, signals):
             # print("current_values: %s", current_values)
 
             if vertices_lines_written % PROGRESS_STEP == 0:
-                    sys.stdout.write('\r%s / %s' % (vertices_lines_written,
-                                                    total_vertices))
+                sys.stdout.write('\r%s / %s' % (vertices_lines_written,
+                                                total_vertices))
 
             # Read properties using the original ordering
             # but write them in the pts expected order
             # If there PTS properties that we need to fill in but were not
             # not found in our source PLY, we set them to a default value
             line_to_write = []
-            for _, pts_prop in enumerate(pts_properties_target_order):
+            for pts_prop in pts_properties_target_order:
                 source_index = pts_properties_source_order.get(pts_prop)
                 # print("pts_prop: %s, source_index: %s", pts_prop, source_index)
 
@@ -226,14 +237,15 @@ def ply_to_pts(source_file, target_file, signals):
             target_buffer.write("\n")
             vertices_lines_written += 1
 
-        detected_ply_props = sorted([
-            k for k,v in ply_properties_map.items()
-            if v
-        ])
+            if vertices_lines_written % PROGRESS_STEP == 0:
+                if signals:
+                    signals.progress.emit(vertices_lines_written)
+
         detected_pts_props = sorted([
             k for k,v in ply_properties_map.items()
             if v and k in pts_properties_target_order
         ])
+        print("\n")
         print("Detected PLY properties: %s" % detected_ply_props)
         print("Detected PTS properties: %s" % detected_pts_props)
 
