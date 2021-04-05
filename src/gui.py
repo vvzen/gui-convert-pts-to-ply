@@ -28,7 +28,9 @@ class ConvertPTSMainWindow(qtw.QMainWindow):
         self.init_ui(width=w, height=h)
         self.conversion_direction = None
 
-        with open(os.path.join(SCRIPT_DIR, '..', 'data', 'style.css'), 'r') as f:
+        css_path = os.path.realpath(os.path.join(SCRIPT_DIR,
+                                                'data', 'style.css'))
+        with open(css_path, 'r') as f:
             self.setStyleSheet(f.read())
 
         self.input_path = None
